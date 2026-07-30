@@ -1,0 +1,64 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+
+      - name: Build binary
+        run: go build -o dtx .
+
+      - name: Install nfpm
+        run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
+
+      - name: Build rpm
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}" "$(go env GOPATH)/bin/nfpm" package \
+            --config nfpm.yaml --packager rpm --target dist/
+
+      - name: Install createrepo_c
+        run: sudo apt-get update && sudo apt-get install -y createrepo-c
+
+      - name: Publish to gh-pages
+        run: |
+          set -e
+          RPM=$(ls dist/*.rpm)
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin gh-pages || true
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            git checkout gh-pages
+          else
+            git checkout --orphan gh-pages
+            git rm -rf . > /dev/null 2>&1 || true
+          fi
+
+          mkdir -p repo/x86_64
+          cp "$RPM" repo/x86_64/
+          createrepo_c repo/x86_64
+
+          cat > repo/dtx.repo <<EOF
+          [dtx]
+          name=dtx
+          baseurl=https://aimnext-dev1.github.io/dtx-docker-manager/repo/x86_64/
+          enabled=1
+          gpgcheck=0
+          EOF
+
+          touch .nojekyll
+          git add repo .nojekyll
+          git commit -m "release: ${GITHUB_REF_NAME}"
+          git push origin gh-pages

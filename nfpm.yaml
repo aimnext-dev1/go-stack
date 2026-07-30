@@ -1,0 +1,11 @@
+name: dtx
+arch: amd64
+platform: linux
+version: ${VERSION}
+maintainer: aimnext-dev1
+description: docker compose 스택 배포/관리/백업/복원 CLI
+homepage: https://github.com/aimnext-dev1/dtx-docker-manager
+
+contents:
+  - src: ./dtx
+    dst: /usr/local/bin/dtx

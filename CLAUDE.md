@@ -56,6 +56,12 @@ my-service/
 5. **전체 콘솔 출력 한글화**: `redLog`/`fatal`/`fmt.Errorf`/`fmt.Fprintf` 등 dtx가 직접 찍는 메시지 전부 한글로. (단, `docker compose`가 자체적으로 찍는 출력은 번역 불가 — 도커 바이너리 소관)
 6. **`_project` 서브폴더 개념 전체 제거**: `cfg.projectDir` 필드 삭제, compose 파일은 `cfg.root`(stack.env와 같은 폴더) 기준으로 직접 탐색. `deploy.go`의 S3 배포도 폴더 통째 스왑 대신 `COMPOSE_FILE_*`/`COMPOSE_BASE_FILE` 값으로 정해지는 개별 파일명만 다운로드/교체하도록 변경(`composeFileNames()`)
 
+## 릴리즈 (yum 배포)
+
+`git tag vX.Y.Z && git push origin vX.Y.Z` 하면 `.github/workflows/release.yml`이 실행됨:
+빌드 → `nfpm.yaml` 기준 rpm 생성(gpg 서명 없음, x86_64만) → `createrepo_c`로 메타데이터 생성 → `gh-pages` 브랜치에 커밋(GitHub Pages로 호스팅, 무료).
+사용자 설치는 README "yum" 섹션 참고. GitHub repo Settings → Pages source를 `gh-pages`로 최초 1회 수동 설정 필요.
+
 ## 검증 방식 (이 프로젝트에서 반드시 실전 테스트할 것)
 
 `go build`만으로 안심 금지 — 매번 `/tmp`에 테스트 stack.env + docker-compose.yml 만들어서 `dtx up/status/stop/down` 등 실제 docker로 검증함. 예:
@@ -72,7 +78,6 @@ printf 'services:\n  web:\n    image: alpine:latest\n    command: sleep 3600\n' 
 - `cfg.cmd[0]`을 compose 서브커맨드 아닌 곳(`volume ls`, `exec`, `cp`)에 재사용 — v1(`docker-compose`) 바이너리 환경에서 깨질 수 있음
 - `deploy.go`의 `Makefile`/`_script/` S3 배포 부분 — 이미 저장소에서 삭제된 레거시 bash 산출물을 참조하는 죽은 코드, 별도 정리 필요
 - **go-sdk(`github.com/docker/go-sdk`) 채택 여부** — 검증 완료, **비추천**. compose 오케스트레이션 미지원, pre-1.0 WIP("API may change"), 지금 1줄 shell-out으로 되는 걸 무거운 의존성으로 바꾸는 격. `--format json`으로 구조화 출력은 의존성 0으로 이미 해결됨
-- yum(rpm) 패키징 — 비용 없음(자체 저장소면 무료), `.spec` 작성 + `createrepo_c` + 호스팅만 있으면 됨. 아직 작업 안 함
 - 프로젝트/바이너리 개명 — `dtx` 유지 결정, `stackctl`/`dockit`/`composr` 등 후보만 논의됨, 실제 변경 안 함
 
 ## 컨벤션

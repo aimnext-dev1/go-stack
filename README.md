@@ -10,6 +10,15 @@
 
 ## 📦 설치
 
+### yum (RHEL/CentOS/Fedora, x86_64)
+
+```bash
+sudo curl -o /etc/yum.repos.d/dtx.repo https://aimnext-dev1.github.io/dtx-docker-manager/repo/dtx.repo
+sudo yum install dtx
+```
+
+### 소스 빌드
+
 ```bash
 git clone <이 저장소>
 cd dtx-docker-manager
