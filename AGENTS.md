@@ -1,11 +1,11 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to coding agents working with code in this repository.
 
 # go-stack
 
 `go-stack` is a single Go-binary CLI that deploys, manages, backs up, and restores `docker compose` stacks.
-Rewrite of a bash script collection (`_script/*.sh` + `Makefile`). ~9 .go files, ~750 lines, `package main`, no internal packages, no external dependencies (stdlib only).
+Rewrite of a bash script collection (`_script/*.sh` + `Makefile`, since deleted from the repo). 10 .go files, ~690 lines, `package main`, no internal packages, no external dependencies (stdlib only).
 
 ## Build/run
 
