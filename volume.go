@@ -39,7 +39,7 @@ func cmdVolPull(args []string) error {
 func cmdVolPush(args []string) error {
 	if err := checkStackExists(); err != nil { return err }
 	data, err := os.ReadFile(filepath.Join(cfg.volumeDir, "volume-map.json"))
-	if err != nil { return fmt.Errorf("volume-map.json을 찾을 수 없습니다. 먼저 'dtx pull'을 실행하세요.") }
+	if err != nil { return fmt.Errorf("volume-map.json을 찾을 수 없습니다. 먼저 'go-stack pull'을 실행하세요.") }
 	var vmap map[string]volMap
 	if err := json.Unmarshal(data, &vmap); err != nil { return fmt.Errorf("volume-map.json이 손상되었습니다: %w", err) }
 	redLog("볼륨 적용 중...")

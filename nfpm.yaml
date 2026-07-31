@@ -1,11 +1,11 @@
-name: dtx
+name: go-stack
 arch: amd64
 platform: linux
 version: ${VERSION}
 maintainer: aimnext-dev1
-description: docker compose 스택 배포/관리/백업/복원 CLI
+description: CLI to deploy, manage, backup, and restore docker compose stacks
 homepage: https://github.com/aimnext-dev1/dtx-docker-manager
 
 contents:
-  - src: ./dtx
-    dst: /usr/local/bin/dtx
+  - src: ./go-stack
+    dst: /usr/local/bin/go-stack

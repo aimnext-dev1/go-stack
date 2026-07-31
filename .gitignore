@@ -16,4 +16,4 @@ _volume/
 stack.env
 
 # built binary
-/dtx
+/go-stack

@@ -2,8 +2,8 @@
 
 # Docker Stack Management CLI 🐳
 
-`docker compose` 스택을 손쉽게 **배포/관리/백업/복원**할 수 있는 단일 바이너리 CLI `dtx`입니다.
-과거에는 프로젝트마다 `_script/`+`Makefile` 전체를 복사해서 썼지만, 이제 `dtx`를 한 번 전역 설치해두면
+`docker compose` 스택을 손쉽게 **배포/관리/백업/복원**할 수 있는 단일 바이너리 CLI `go-stack`입니다.
+과거에는 프로젝트마다 `_script/`+`Makefile` 전체를 복사해서 썼지만, 이제 `go-stack`를 한 번 전역 설치해두면
 각 프로젝트 폴더에는 `stack.env` + `docker-compose*.yml`만 있으면 됩니다.
 
 ---
@@ -13,8 +13,8 @@
 ### yum (RHEL/CentOS/Fedora, x86_64)
 
 ```bash
-sudo curl -o /etc/yum.repos.d/dtx.repo https://aimnext-dev1.github.io/dtx-docker-manager/repo/dtx.repo
-sudo yum install dtx
+sudo curl -o /etc/yum.repos.d/go-stack.repo https://aimnext-dev1.github.io/dtx-docker-manager/repo/go-stack.repo
+sudo yum install go-stack
 ```
 
 ### 소스 빌드
@@ -22,15 +22,15 @@ sudo yum install dtx
 ```bash
 git clone <이 저장소>
 cd dtx-docker-manager
-go build -o dtx .
-sudo mv dtx /usr/local/bin/     # 또는 PATH가 잡힌 아무 위치
+go build -o go-stack .
+sudo mv go-stack /usr/local/bin/     # 또는 PATH가 잡힌 아무 위치
 ```
 
 Go 1.26 이상이 필요합니다(빌드 시에만; 설치 후에는 바이너리만 있으면 됩니다).
 
 ---
 
-## 📁 프로젝트 구조 (dtx가 관리하는 각 서비스 폴더)
+## 📁 프로젝트 구조 (go-stack가 관리하는 각 서비스 폴더)
 
 ```text
 my-service/
@@ -41,10 +41,10 @@ my-service/
 └── docker-compose.prod.yml
 ```
 
-`dtx`는 현재 디렉토리에서 상위로 올라가며 `stack.env`를 찾습니다(git이 `.git`을 찾는 방식과 동일) —
-서비스 폴더 안 어디서든 `dtx` 명령을 실행할 수 있습니다.
+`go-stack`는 현재 디렉토리에서 상위로 올라가며 `stack.env`를 찾습니다(git이 `.git`을 찾는 방식과 동일) —
+서비스 폴더 안 어디서든 `go-stack` 명령을 실행할 수 있습니다.
 
-`_backup/`(백업 결과물), `_volume/`(pull/push 작업 폴더)는 필요할 때 `dtx`가 자동 생성합니다.
+`_backup/`(백업 결과물), `_volume/`(pull/push 작업 폴더)는 필요할 때 `go-stack`가 자동 생성합니다.
 
 ---
 
@@ -59,12 +59,12 @@ my-service/
 
 ```bash
 mkdir my-service && cd my-service
-dtx init                               # stack.env 생성 + .gitignore에 등록
+go-stack init                               # stack.env 생성 + .gitignore에 등록
 vi stack.env                          # 값 입력 (아래 표 참고)
 vi docker-compose.yml                 # 서비스 정의 작성 (stack.env와 같은 폴더)
 ```
 
-> `dtx init`은 `stack.env`만 생성합니다. compose 파일은 직접 작성하세요.
+> `go-stack init`은 `stack.env`만 생성합니다. compose 파일은 직접 작성하세요.
 > 이미 `stack.env`가 있는 폴더에서 실행하면 에러 메시지를 띄우고 아무것도 바꾸지 않습니다.
 
 `stack.env`에 채워야 할 값:
@@ -81,7 +81,7 @@ ENV_FILE_LOCAL        # (선택) 로컬환경 환경변수 파일 경로
 ENV_FILE_DEV          # (선택) 개발환경 환경변수 파일 경로
 ENV_FILE_PROD         # (선택) 운영환경 환경변수 파일 경로
 
-DTX_CONTAINER         # (선택) docker | podman — 자동 감지 우선순위를 강제로 지정
+GO_STACK_CONTAINER         # (선택) docker | podman — 자동 감지 우선순위를 강제로 지정
 ```
 
 > `stack.env`는 `.gitignore`에 포함하는 것을 권장합니다(프로젝트별 값이므로 커밋 불필요).
@@ -101,49 +101,49 @@ compose 표준 오버레이 방식을 권장합니다. `stack.env`에서 `COMPOS
 ### 🔹 스택 실행 / 제거
 
 ```bash
-dtx up [환경]       # ex) dtx up local (환경 미지정시 local)
-dtx down
-dtx update [환경]   # 변경분 빌드 후 재생성 (compose up -d --build)
+go-stack up [환경]       # ex) go-stack up local (환경 미지정시 local)
+go-stack down
+go-stack update [환경]   # 변경분 빌드 후 재생성 (compose up -d --build)
 ```
 
 ### 🔹 서비스 제어
 ```bash
-dtx start [서비스명...]       # 비워놓을 경우 전체 시작
-dtx stop [서비스명...]        # 비워놓을 경우 전체 중지
-dtx restart [서비스명...]     # 비워놓을 경우 전체 재시작
-dtx status
-dtx log [컨테이너명]           # 미지정시 컨테이너 1개면 자동 선택, 여러 개면 목록 출력
-dtx connect [컨테이너명]        # 컨테이너 안으로 접속 (bash 있으면 bash, 없으면 sh)
+go-stack start [서비스명...]       # 비워놓을 경우 전체 시작
+go-stack stop [서비스명...]        # 비워놓을 경우 전체 중지
+go-stack restart [서비스명...]     # 비워놓을 경우 전체 재시작
+go-stack status
+go-stack log [컨테이너명]           # 미지정시 컨테이너 1개면 자동 선택, 여러 개면 목록 출력
+go-stack connect [컨테이너명]        # 컨테이너 안으로 접속 (bash 있으면 bash, 없으면 sh)
 ```
 
 ### 🔹 백업 / 복원
 ```bash
-dtx backup [no-stop]
-dtx restore <백업시간> [no-stop]   # 예: dtx restore 20250331_1325
+go-stack backup [no-stop]
+go-stack restore <백업시간> [no-stop]   # 예: go-stack restore 20250331_1325
 
-dtx isave [source]
-dtx iload <백업시간>                # 예: dtx iload 20250331_1325
+go-stack isave [source]
+go-stack iload <백업시간>                # 예: go-stack iload 20250331_1325
 ```
 
 > `backup`/`restore`는 데이터 정합성을 위해 진행 전 스택을 중지하고, 완료 후 다시 시작합니다.
-> 중지 없이 진행하려면 `no-stop` 인자를 붙이세요(예: `dtx backup no-stop`).
+> 중지 없이 진행하려면 `no-stop` 인자를 붙이세요(예: `go-stack backup no-stop`).
 >
 > `isave`(이미지 백업)는 기본적으로 컨테이너의 현재 상태(런타임 변경분 포함)를 커밋해 백업합니다.
-> 원본 이미지 그대로(더 빠르고 용량이 작음) 백업하려면 `dtx isave source`를 사용하세요.
+> 원본 이미지 그대로(더 빠르고 용량이 작음) 백업하려면 `go-stack isave source`를 사용하세요.
 > `iload`(이미지 복원)는 이미지를 로컬로 불러오기만 합니다 — 이후 compose 파일의 `image:` 값을
-> 복원한 이미지명으로 수동으로 바꾸고 `dtx up`을 실행해야 합니다.
+> 복원한 이미지명으로 수동으로 바꾸고 `go-stack up`을 실행해야 합니다.
 
 ### 🔹 볼륨 변경사항 적용
 ```bash
-dtx pull
+go-stack pull
 # ./_volume 에 받은 데이터를 수정한 뒤
-dtx push
+go-stack push
 ```
 
 ### 🔹 기타
 ```bash
-dtx clear          # 미사용 이미지 정리 (docker image prune -af)
-dtx help           # 명령어 도움말 출력
+go-stack clear          # 미사용 이미지 정리 (docker image prune -af)
+go-stack help           # 명령어 도움말 출력
 ```
 
 ## 🧩 백업 파일명 규칙
@@ -161,10 +161,10 @@ dtx help           # 명령어 도움말 출력
 ## 🧪 예시
 ```bash
 mkdir my-service && cd my-service
-dtx init
+go-stack init
 # stack.env 값 입력, docker-compose.yml 작성 후
-dtx up local
-dtx status
-dtx backup
-dtx restore 20250331_1325
+go-stack up local
+go-stack status
+go-stack backup
+go-stack restore 20250331_1325
 ```

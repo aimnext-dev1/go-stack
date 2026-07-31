@@ -19,7 +19,7 @@ jobs:
           go-version: '1.26'
 
       - name: Build binary
-        run: go build -o dtx .
+        run: go build -o go-stack .
 
       - name: Install nfpm
         run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
@@ -50,9 +50,9 @@ jobs:
           cp "$RPM" repo/x86_64/
           createrepo_c repo/x86_64
 
-          cat > repo/dtx.repo <<EOF
-          [dtx]
-          name=dtx
+          cat > repo/go-stack.repo <<EOF
+          [go-stack]
+          name=go-stack
           baseurl=https://aimnext-dev1.github.io/dtx-docker-manager/repo/x86_64/
           enabled=1
           gpgcheck=0

@@ -23,7 +23,7 @@ COMPOSE_FILE_PROD=docker-compose.yml
 # ENV_FILE_PROD=
 
 # (선택) 컨테이너 런타임 강제 지정: docker | podman (미지정시 자동 감지)
-# DTX_CONTAINER=docker
+# GO_STACK_CONTAINER=docker
 `
 
 func cmdInit(args []string) error {
@@ -36,7 +36,7 @@ func cmdInit(args []string) error {
 	if err := ensureGitignored("stack.env"); err != nil {
 		return err
 	}
-	redLog("stack.env 생성 완료. 값을 채운 뒤 'dtx up'을 실행하세요.")
+	redLog("stack.env 생성 완료. 값을 채운 뒤 'go-stack up'을 실행하세요.")
 	return nil
 }
 

@@ -13,7 +13,7 @@ func main() {
 	}
 	if os.Args[1] == "init" {
 		if err := cmdInit(os.Args[2:]); err != nil {
-			fmt.Fprintf(os.Stderr, "dtx: %v\n", err)
+			fmt.Fprintf(os.Stderr, "go-stack: %v\n", err)
 			os.Exit(1)
 		}
 		return
@@ -22,16 +22,16 @@ func main() {
 	name := os.Args[1]
 	a, ok := cmds[name]
 	if !ok {
-		fmt.Fprintf(os.Stderr, "dtx: 알 수 없는 명령어 '%s'. 'dtx help'를 실행하세요.\n", name)
+		fmt.Fprintf(os.Stderr, "go-stack: 알 수 없는 명령어 '%s'. 'go-stack help'를 실행하세요.\n", name)
 		os.Exit(1)
 	}
 	args := os.Args[2:]
 	if len(args) < a.minArgs {
-		fmt.Fprintf(os.Stderr, "dtx %s: 인자가 부족합니다\n  %s\n", name, a.usage)
+		fmt.Fprintf(os.Stderr, "go-stack %s: 인자가 부족합니다\n  %s\n", name, a.usage)
 		os.Exit(1)
 	}
 	if err := a.fn(args); err != nil {
-		fmt.Fprintf(os.Stderr, "dtx: %v\n", err)
+		fmt.Fprintf(os.Stderr, "go-stack: %v\n", err)
 		os.Exit(1)
 	}
 }
@@ -50,5 +50,5 @@ func printHelp() {
 			if cmds[k].group == g { fmt.Printf("  %s\n", cmds[k].usage) }
 		}
 	}
-	fmt.Printf("\ndtx help\n\n")
+	fmt.Printf("\ngo-stack help\n\n")
 }

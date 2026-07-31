@@ -76,7 +76,7 @@ func composeLines(args ...string) []string {
 func checkStackExists() error {
 	out, _ := composeOut("ps", "-aq")
 	if out == "" {
-		return fmt.Errorf("'%s' 스택을 찾을 수 없습니다. 먼저 'dtx up'을 실행하세요.", cfg.stackName)
+		return fmt.Errorf("'%s' 스택을 찾을 수 없습니다. 먼저 'go-stack up'을 실행하세요.", cfg.stackName)
 	}
 	return nil
 }
@@ -84,7 +84,7 @@ func checkStackExists() error {
 func checkStackNotExist() error {
     err := checkStackExists()
     if err == nil {
-        return fmt.Errorf("'%s' 스택이 이미 존재합니다. 먼저 'dtx down'을 실행하세요.", cfg.stackName)
+        return fmt.Errorf("'%s' 스택이 이미 존재합니다. 먼저 'go-stack down'을 실행하세요.", cfg.stackName)
     }
     return nil
 }

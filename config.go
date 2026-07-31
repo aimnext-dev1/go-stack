@@ -60,7 +60,7 @@ func parseEnvFile(path string) {
 }
 
 func detectContainer() []string {
-    if v := os.Getenv("DTX_CONTAINER"); v != "" {
+    if v := os.Getenv("GO_STACK_CONTAINER"); v != "" {
         switch strings.ToLower(v) {
         case "podman": cfg.podman = true; return []string{"podman","compose"}
         case "docker": return []string{"docker","compose"}
