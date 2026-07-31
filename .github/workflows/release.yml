@@ -26,6 +26,7 @@ jobs:
 
       - name: Build rpm
         run: |
+          mkdir -p dist
           VERSION="${GITHUB_REF_NAME#v}" "$(go env GOPATH)/bin/nfpm" package \
             --config nfpm.yaml --packager rpm --target dist/
 
