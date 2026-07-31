@@ -67,7 +67,9 @@ func detectContainer() []string {
         }
     }
     if _, e := exec.LookPath("docker"); e == nil {
-        if exec.Command("docker","info").Run() == nil { return []string{"docker","compose"} }
+        if exec.Command("docker","info").Run() == nil && exec.Command("docker","compose","version").Run() == nil {
+            return []string{"docker","compose"}
+        }
     }
     if _, e := exec.LookPath("podman"); e == nil { cfg.podman = true; return []string{"podman","compose"} }
     if _, e := exec.LookPath("docker-compose"); e == nil { return []string{"docker-compose"} }
