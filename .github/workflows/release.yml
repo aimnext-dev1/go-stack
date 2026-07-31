@@ -54,7 +54,7 @@ jobs:
           cat > repo/go-stack.repo <<EOF
           [go-stack]
           name=go-stack
-          baseurl=https://aimnext-dev1.github.io/dtx-docker-manager/repo/x86_64/
+          baseurl=https://aimnext-dev1.github.io/go-stack/repo/x86_64/
           enabled=1
           gpgcheck=0
           EOF

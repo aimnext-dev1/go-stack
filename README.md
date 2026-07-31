@@ -1,4 +1,4 @@
-# dtx-docker-manager
+# go-stack
 
 # Docker Stack Management CLI 🐳
 
@@ -13,7 +13,7 @@ project folder only needs `stack.env` + `docker-compose*.yml`.
 ### yum (RHEL/CentOS/Fedora, x86_64)
 
 ```bash
-sudo curl -o /etc/yum.repos.d/go-stack.repo https://aimnext-dev1.github.io/dtx-docker-manager/repo/go-stack.repo
+sudo curl -o /etc/yum.repos.d/go-stack.repo https://aimnext-dev1.github.io/go-stack/repo/go-stack.repo
 sudo yum install go-stack
 ```
 
@@ -21,7 +21,7 @@ sudo yum install go-stack
 
 ```bash
 git clone <this repo>
-cd dtx-docker-manager
+cd go-stack
 go build -o go-stack .
 sudo mv go-stack /usr/local/bin/     # or anywhere on PATH
 ```

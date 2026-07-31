@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# dtx-docker-manager
+# go-stack
 
 `go-stack` is a single Go-binary CLI that deploys, manages, backs up, and restores `docker compose` stacks.
 Rewrite in progress from a collection of bash scripts (`_script/*.sh` + `Makefile`) to Go. Project size: ~9 .go files, ~700 lines.
@@ -55,7 +55,7 @@ No `cfg.projectDir` field; `resolveComposeFiles()` finds files relative to `cfg.
 4. **Removed the `FOLDER_NAME` env var + `checkProjectDir()`**: confirmed empirically that `docker compose stop/down` works purely off container labels — the `_project` folder existence check was an unnecessary block (in particular it prevented cleaning up via `down`/`backup` after `_project` had already been deleted)
 5. **Translated all console output**: `redLog`/`fatal`/`fmt.Errorf`/`fmt.Fprintf` messages that go-stack prints directly are all in English now. (Output that `docker compose` prints on its own can't be translated — that's up to the docker binary.)
 6. **Removed the `_project` subfolder concept entirely**: deleted the `cfg.projectDir` field; compose files are now found directly relative to `cfg.root` (same folder as stack.env). `deploy.go`'s S3 deploy also changed from swapping the whole folder to downloading/replacing only the individual filenames determined by `COMPOSE_FILE_*`/`COMPOSE_BASE_FILE` (`composeFileNames()`)
-7. **Renamed the binary/CLI from `dtx` to `go-stack`**: to better convey broader applicability. The GitHub repo name (`dtx-docker-manager`) is unchanged — the user handles that separately in GitHub.
+7. **Renamed the binary/CLI from `dtx` to `go-stack`**: to better convey broader applicability. The GitHub repo was later renamed to match (`aimnext-dev1/go-stack`).
 8. **Translated all user-facing strings to English**: the repo is now public; all error/log messages, README, and this file were translated from Korean.
 
 ## Release (yum distribution)

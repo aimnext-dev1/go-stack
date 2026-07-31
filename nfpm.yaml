@@ -4,7 +4,7 @@ platform: linux
 version: ${VERSION}
 maintainer: aimnext-dev1
 description: CLI to deploy, manage, backup, and restore docker compose stacks
-homepage: https://github.com/aimnext-dev1/dtx-docker-manager
+homepage: https://github.com/aimnext-dev1/go-stack
 
 contents:
   - src: ./go-stack
