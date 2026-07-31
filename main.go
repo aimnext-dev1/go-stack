@@ -6,9 +6,15 @@ import (
 	"sort"
 )
 
+var version = "dev"
+
 func main() {
 	if len(os.Args) < 2 || os.Args[1] == "help" {
 		printHelp()
+		return
+	}
+	if os.Args[1] == "-v" || os.Args[1] == "--version" || os.Args[1] == "version" {
+		fmt.Printf("go-stack %s\n", version)
 		return
 	}
 	if os.Args[1] == "init" {

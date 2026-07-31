@@ -19,7 +19,7 @@ jobs:
           go-version: '1.26'
 
       - name: Build binary
-        run: go build -o go-stack .
+        run: go build -ldflags "-X main.version=${GITHUB_REF_NAME}" -o go-stack .
 
       - name: Install nfpm
         run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest

@@ -189,6 +189,7 @@ Requires the `aws` CLI installed and credentials configured, plus `DEPLOY_S3_BUC
 ```bash
 go-stack clear          # prune unused images (docker image prune -af)
 go-stack help           # print command help
+go-stack -v             # print version (also: --version, version)
 ```
 
 ## 🧩 Backup filename convention
