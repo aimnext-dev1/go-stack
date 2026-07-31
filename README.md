@@ -1,10 +1,20 @@
-# go-stack
+# go-stack — Docker Stack Management CLI 🐳
 
-# Docker Stack Management CLI 🐳
+[![release](https://github.com/aimnext-dev1/go-stack/actions/workflows/release.yml/badge.svg)](https://github.com/aimnext-dev1/go-stack/actions/workflows/release.yml)
 
 `go-stack` is a single-binary CLI that makes it easy to **deploy, manage, back up, and restore** `docker compose` stacks.
 In the past every project copied a whole `_script/` + `Makefile` set; now install `go-stack` globally once, and each
 project folder only needs `stack.env` + `docker-compose*.yml`.
+
+## Contents
+
+- [Install](#-install)
+- [Upgrade](#-upgrade)
+- [Project layout](#-project-layout-per-service-folder-managed-by-go-stack)
+- [Before you start](#-before-you-start)
+- [Basic usage](#basic-usage)
+- [Backup filename convention](#-backup-filename-convention)
+- [Example](#-example)
 
 ---
 
@@ -20,13 +30,34 @@ sudo yum install go-stack
 ### Build from source
 
 ```bash
-git clone <this repo>
+git clone https://github.com/aimnext-dev1/go-stack.git
 cd go-stack
 go build -o go-stack .
 sudo mv go-stack /usr/local/bin/     # or anywhere on PATH
 ```
 
 Requires Go 1.26+ (only for building; once installed, only the binary is needed).
+
+---
+
+## ⬆️ Upgrade
+
+### yum
+
+New versions are only picked up after a fresh `git tag vX.Y.Z` is pushed (re-pushing the same tag does not trigger a rebuild). yum also caches repo metadata, so refresh it before upgrading:
+
+```bash
+sudo yum clean all
+sudo yum upgrade go-stack
+```
+
+### Source build
+
+```bash
+git pull
+go build -o go-stack .
+sudo mv go-stack /usr/local/bin/
+```
 
 ---
 
@@ -51,7 +82,14 @@ you can run `go-stack` from anywhere inside a service folder.
 ## 🙌 Before you start
 
 ### Requirements
-* Docker CLI / `docker compose` (v2), or Podman / `docker-compose` (v1) must be on PATH
+
+`go-stack` auto-detects the container runtime, in this order:
+1. `docker` with the `compose` v2 CLI plugin
+2. `docker` daemon only, with a standalone `docker-compose` binary on PATH (works whether it's the old v1 CLI or a v2-engine binary published under the `docker-compose` name — go-stack just shells out to whichever is found)
+3. `podman` with the `compose` plugin
+4. `podman-compose`
+
+If auto-detection picks the wrong one, force it with `GO_STACK_CONTAINER=docker` or `GO_STACK_CONTAINER=podman` in `stack.env`.
 
 (Unlike the old bash version, there's no `jq` dependency — the Go binary handles JSON directly.)
 
@@ -97,7 +135,7 @@ If unset, the single per-environment file is used as a complete standalone spec.
 
 ---
 
-## 🛠️ Basic usage
+## Basic usage
 
 ### 🔹 Start / remove the stack
 
@@ -140,6 +178,12 @@ go-stack pull
 # edit the data under ./_volume, then
 go-stack push
 ```
+
+### 🔹 Deploy from S3
+```bash
+go-stack deploy [dev|prod]   # defaults to dev
+```
+Requires the `aws` CLI installed and credentials configured, plus `DEPLOY_S3_BUCKET_DEV` / `DEPLOY_S3_BUCKET_PROD` set in `stack.env`.
 
 ### 🔹 Misc
 ```bash

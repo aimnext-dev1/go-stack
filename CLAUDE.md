@@ -57,6 +57,8 @@ No `cfg.projectDir` field; `resolveComposeFiles()` finds files relative to `cfg.
 6. **Removed the `_project` subfolder concept entirely**: deleted the `cfg.projectDir` field; compose files are now found directly relative to `cfg.root` (same folder as stack.env). `deploy.go`'s S3 deploy also changed from swapping the whole folder to downloading/replacing only the individual filenames determined by `COMPOSE_FILE_*`/`COMPOSE_BASE_FILE` (`composeFileNames()`)
 7. **Renamed the binary/CLI from `dtx` to `go-stack`**: to better convey broader applicability. The GitHub repo was later renamed to match (`aimnext-dev1/go-stack`).
 8. **Translated all user-facing strings to English**: the repo is now public; all error/log messages, README, and this file were translated from Korean.
+9. **Verified `docker compose` v2 plugin actually exists**: `detectContainer()` used to trust `docker info` alone; on hosts with the daemon running but no v2 CLI plugin (only a standalone `docker-compose` binary), it wrongly picked `["docker","compose"]`, which docker's root command misparsed. Now also checks `docker compose version`.
+10. **Added `cfg.containerBin`**: direct (non-compose) container commands — `log`/`connect`/`isave`/`iload`/`pull`/`push`/`backup`/`restore`/`clear`/volume ls/`getMount()` — were reusing `cfg.cmd[0]` as if it were always the `docker`/`podman` binary. Under the `docker-compose`(v1 binary)/`podman-compose` fallback, `cfg.cmd[0]` is the compose binary itself, so e.g. `go-stack log` ran `docker-compose logs ...` with no compose file in cwd and failed. `cfg.containerBin` is now set explicitly in `detectContainer()` and used by all of these instead.
 
 ## Release (yum distribution)
 
@@ -76,8 +78,6 @@ printf 'services:\n  web:\n    image: alpine:latest\n    command: sleep 3600\n' 
 
 ## Out of scope for now (not decided by the user, don't touch)
 
-- `getMount()` hardcodes the `docker` command — breaks under podman
-- `cfg.cmd[0]` is reused in places that aren't compose subcommands (`volume ls`, `exec`, `cp`) — may break under a v1 (`docker-compose`) binary
 - The `Makefile`/`_script/` S3 deploy part of `deploy.go` — dead code referencing legacy bash artifacts already deleted from the repo, needs separate cleanup
 - **Whether to adopt go-sdk (`github.com/docker/go-sdk`)** — evaluated, **not recommended**. No compose orchestration support, pre-1.0 WIP ("API may change"), would trade a heavy dependency for what's currently a one-line shell-out. Structured output via `--format json` already solves this with zero dependencies.
 
