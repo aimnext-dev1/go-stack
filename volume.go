@@ -27,7 +27,7 @@ func cmdVolPull(args []string) error {
 			_, dst := getMount(ctr, vol)
 			if dst == "" { continue }
 			m[ctr] = volMap{Volume: vol, Destination: dst}
-			run(cfg.cmd[0], "cp", ctr+":"+dst, filepath.Join(cfg.volumeDir, vol))
+			run(cfg.containerBin, "cp", ctr+":"+dst, filepath.Join(cfg.volumeDir, vol))
 		}
 	}
 	b, _ := json.MarshalIndent(m, "", "  ")
@@ -49,12 +49,12 @@ func cmdVolPush(args []string) error {
 			fmt.Fprintf(os.Stderr, "  skipped (no data): %s\n", src)
 			continue
 		}
-		run(cfg.cmd[0], "cp", src+"/.", ctr+":"+e.Destination)
-		usr, _ := runOut(cfg.cmd[0], "exec", ctr, "stat", "-c", "%U", e.Destination)
+		run(cfg.containerBin, "cp", src+"/.", ctr+":"+e.Destination)
+		usr, _ := runOut(cfg.containerBin, "exec", ctr, "stat", "-c", "%U", e.Destination)
 		if usr == "" { usr = "root" }
-		grp, _ := runOut(cfg.cmd[0], "exec", ctr, "stat", "-c", "%G", e.Destination)
+		grp, _ := runOut(cfg.containerBin, "exec", ctr, "stat", "-c", "%G", e.Destination)
 		if grp == "" { grp = "root" }
-		run(cfg.cmd[0], "exec", "-u", "root", ctr, "chown", "-R", usr+":"+grp, e.Destination)
+		run(cfg.containerBin, "exec", "-u", "root", ctr, "chown", "-R", usr+":"+grp, e.Destination)
 	}
 	redLog("volume push complete!")
 	return nil
@@ -79,7 +79,7 @@ func cmdVolBackup(args []string) error {
 			_, dst := getMount(ctr, vol)
 			if dst == "" { continue }
 			m[ctr] = volMap{Volume: vol, Destination: dst}
-			run(cfg.cmd[0], "cp", ctr+":"+dst, dest)
+			run(cfg.containerBin, "cp", ctr+":"+dst, dest)
 		}
 	}
 	b, _ := json.MarshalIndent(m, "", "  ")
@@ -116,12 +116,12 @@ func cmdVolRestore(args []string) error {
 	for ctr, e := range vmap {
 		src := filepath.Join(rdir, e.Volume)
 		if _, e2 := os.Stat(src); os.IsNotExist(e2) { continue }
-		run(cfg.cmd[0], "cp", src+"/.", ctr+":"+e.Destination)
-		usr, _ := runOut(cfg.cmd[0], "exec", ctr, "stat", "-c", "%U", e.Destination)
+		run(cfg.containerBin, "cp", src+"/.", ctr+":"+e.Destination)
+		usr, _ := runOut(cfg.containerBin, "exec", ctr, "stat", "-c", "%U", e.Destination)
 		if usr == "" { usr = "root" }
-		grp, _ := runOut(cfg.cmd[0], "exec", ctr, "stat", "-c", "%G", e.Destination)
+		grp, _ := runOut(cfg.containerBin, "exec", ctr, "stat", "-c", "%G", e.Destination)
 		if grp == "" { grp = "root" }
-		run(cfg.cmd[0], "exec", "-u", "root", ctr, "chown", "-R", usr+":"+grp, e.Destination)
+		run(cfg.containerBin, "exec", "-u", "root", ctr, "chown", "-R", usr+":"+grp, e.Destination)
 	}
 	redLog("volume restore complete!")
 	return nil

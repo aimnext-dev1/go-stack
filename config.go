@@ -10,6 +10,7 @@ import (
 
 var cfg struct {
     cmd   []string
+    containerBin string
     podman bool
     stackName   string
     root        string
@@ -62,18 +63,19 @@ func parseEnvFile(path string) {
 func detectContainer() []string {
     if v := os.Getenv("GO_STACK_CONTAINER"); v != "" {
         switch strings.ToLower(v) {
-        case "podman": cfg.podman = true; return []string{"podman","compose"}
-        case "docker": return []string{"docker","compose"}
+        case "podman": cfg.podman = true; cfg.containerBin = "podman"; return []string{"podman","compose"}
+        case "docker": cfg.containerBin = "docker"; return []string{"docker","compose"}
         }
     }
     if _, e := exec.LookPath("docker"); e == nil {
         if exec.Command("docker","info").Run() == nil && exec.Command("docker","compose","version").Run() == nil {
+            cfg.containerBin = "docker"
             return []string{"docker","compose"}
         }
     }
-    if _, e := exec.LookPath("podman"); e == nil { cfg.podman = true; return []string{"podman","compose"} }
-    if _, e := exec.LookPath("docker-compose"); e == nil { return []string{"docker-compose"} }
-    if _, e := exec.LookPath("podman-compose"); e == nil { cfg.podman = true; return []string{"podman-compose"} }
+    if _, e := exec.LookPath("podman"); e == nil { cfg.podman = true; cfg.containerBin = "podman"; return []string{"podman","compose"} }
+    if _, e := exec.LookPath("docker-compose"); e == nil { cfg.containerBin = "docker"; return []string{"docker-compose"} }
+    if _, e := exec.LookPath("podman-compose"); e == nil { cfg.podman = true; cfg.containerBin = "podman"; return []string{"podman-compose"} }
     fmt.Fprintln(os.Stderr,"no container runtime found.")
     os.Exit(1)
     return nil

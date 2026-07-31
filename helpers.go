@@ -98,14 +98,14 @@ func containerIDs() []string {
 }
 
 func volumeList() []string {
-    return runLines(cfg.cmd[0], "volume", "ls",
+    return runLines(cfg.containerBin, "volume", "ls",
         "--filter", "label=com.docker.compose.project="+cfg.stackName,
         "--format", "{{.Name}}")
 }
 
 func getMount(container, volume string) (src, dst string) {
     const tmpl = `{{range .Mounts}}{{if eq .Name "%s"}}{{.Source}}{{"\n"}}{{.Destination}}{{end}}{{end}}`
-    s, _ := runOut("docker", "inspect", container, "--format", fmt.Sprintf(tmpl, volume))
+    s, _ := runOut(cfg.containerBin, "inspect", container, "--format", fmt.Sprintf(tmpl, volume))
     lines := strings.Split(strings.TrimSpace(s), "\n")
     if len(lines) >= 2 { src, dst = lines[0], lines[1] }
     return

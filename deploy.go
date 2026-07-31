@@ -47,5 +47,5 @@ func composeFileNames() []string {
 
 func cmdClear(args []string) error {
 	redLog("pruning unused images (-af)...")
-	return run(cfg.cmd[0], "image", "prune", "-af")
+	return run(cfg.containerBin, "image", "prune", "-af")
 }

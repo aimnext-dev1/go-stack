@@ -23,13 +23,13 @@ func cmdLog(args []string) error {
 	name := resolveOneContainer(args)
 	if name == "" { return fmt.Errorf("specify a container name") }
 	redLog("tailing logs: " + name)
-	return run(cfg.cmd[0], "logs", "-f", "-n", "10000", name)
+	return run(cfg.containerBin, "logs", "-f", "-n", "10000", name)
 }
 
 func cmdConnect(args []string) error {
 	name := resolveOneContainer(args)
 	if name == "" { return fmt.Errorf("specify a container name") }
 	redLog("connecting: " + name)
-	return run(cfg.cmd[0], "exec", "-it", name, "sh", "-c",
+	return run(cfg.containerBin, "exec", "-it", name, "sh", "-c",
 		`if command -v bash >/dev/null 2>&1; then exec bash; else exec sh; fi`)
 }

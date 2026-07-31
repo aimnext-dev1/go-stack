@@ -15,15 +15,15 @@ func cmdImgBackup(args []string) error {
 	dir := filepath.Join(cfg.backupDir, cfg.stackName+".image."+ts)
 	os.MkdirAll(dir, 0755)
 	for _, cid := range containerIDs() {
-		cName, _ := runOut(cfg.cmd[0], "inspect", "--format", "{{.Name}}", cid)
+		cName, _ := runOut(cfg.containerBin, "inspect", "--format", "{{.Name}}", cid)
 		cName = strings.TrimPrefix(cName, "/")
 		if sourceOnly {
-			img, _ := runOut(cfg.cmd[0], "inspect", "--format", "{{.Image}}", cid)
-			run(cfg.cmd[0], "save", "-o", filepath.Join(dir, cName+".image.backup.tar"), img)
+			img, _ := runOut(cfg.containerBin, "inspect", "--format", "{{.Image}}", cid)
+			run(cfg.containerBin, "save", "-o", filepath.Join(dir, cName+".image.backup.tar"), img)
 		} else {
-			run(cfg.cmd[0], "commit", cid, cName+":backup")
-			run(cfg.cmd[0], "save", "-o", filepath.Join(dir, cName+".image.backup.tar"), cName+":backup")
-			run(cfg.cmd[0], "rmi", cName+":backup")
+			run(cfg.containerBin, "commit", cid, cName+":backup")
+			run(cfg.containerBin, "save", "-o", filepath.Join(dir, cName+".image.backup.tar"), cName+":backup")
+			run(cfg.containerBin, "rmi", cName+":backup")
 		}
 	}
 	redLog("compressing...")
@@ -44,7 +44,7 @@ func cmdImgRestore(args []string) error {
 	for _, e := range ents {
 		if strings.HasSuffix(e.Name(), ".tar") {
 			redLog("loading: " + e.Name())
-			run(cfg.cmd[0], "load", "-i", filepath.Join(rd, e.Name()))
+			run(cfg.containerBin, "load", "-i", filepath.Join(rd, e.Name()))
 		}
 	}
 	redLog("image restore complete! Update the image value in your compose file, then run.")
