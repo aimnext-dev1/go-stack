@@ -11,17 +11,17 @@ func cmdUp(args []string) error {
 	out = append(out, files...)
 	if envFile != "" { out = append(out, "--env-file", envFile) }
 	out = append(out, "up", "-d")
-	redLog("스택 생성 중...")
+	redLog("creating stack...")
 	return compose(out...)
 }
 
 func cmdDown(args []string) error {
 	if err := checkStackExists(); err != nil { return err }
-	if !confirm("스택을 삭제하시겠습니까? 모든 컨테이너가 제거됩니다.") {
-		fmt.Println("취소됨.")
+	if !confirm("Delete the stack? All containers will be removed.") {
+		fmt.Println("Cancelled.")
 		return nil
 	}
-	redLog("스택 삭제 중...")
+	redLog("deleting stack...")
 	return compose("down")
 }
 
@@ -34,6 +34,6 @@ func cmdUpdate(args []string) error {
 	out = append(out, files...)
 	if envFile != "" { out = append(out, "--env-file", envFile) }
 	out = append(out, "up", "-d", "--build")
-	redLog("스택 갱신 중 (--build)...")
+	redLog("updating stack (--build)...")
 	return compose(out...)
 }

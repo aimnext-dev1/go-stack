@@ -16,9 +16,9 @@ type volMap struct {
 func cmdVolPull(args []string) error {
 	if err := checkStackExists(); err != nil { return err }
 	vols := volumeList()
-	if len(vols) == 0 { return fmt.Errorf("볼륨을 찾을 수 없습니다") }
+	if len(vols) == 0 { return fmt.Errorf("no volumes found") }
 	ctrs := containerNames()
-	redLog("볼륨 가져오는 중...")
+	redLog("pulling volumes...")
 	os.RemoveAll(cfg.volumeDir)
 	os.MkdirAll(cfg.volumeDir, 0755)
 	m := map[string]volMap{}
@@ -32,21 +32,21 @@ func cmdVolPull(args []string) error {
 	}
 	b, _ := json.MarshalIndent(m, "", "  ")
 	os.WriteFile(filepath.Join(cfg.volumeDir, "volume-map.json"), b, 0644)
-	redLog("볼륨 가져오기 완료!")
+	redLog("volume pull complete!")
 	return nil
 }
 
 func cmdVolPush(args []string) error {
 	if err := checkStackExists(); err != nil { return err }
 	data, err := os.ReadFile(filepath.Join(cfg.volumeDir, "volume-map.json"))
-	if err != nil { return fmt.Errorf("volume-map.json을 찾을 수 없습니다. 먼저 'go-stack pull'을 실행하세요.") }
+	if err != nil { return fmt.Errorf("volume-map.json not found. Run 'go-stack pull' first.") }
 	var vmap map[string]volMap
-	if err := json.Unmarshal(data, &vmap); err != nil { return fmt.Errorf("volume-map.json이 손상되었습니다: %w", err) }
-	redLog("볼륨 적용 중...")
+	if err := json.Unmarshal(data, &vmap); err != nil { return fmt.Errorf("volume-map.json is corrupted: %w", err) }
+	redLog("pushing volumes...")
 	for ctr, e := range vmap {
 		src := filepath.Join(cfg.volumeDir, e.Volume)
 		if _, e2 := os.Stat(src); os.IsNotExist(e2) {
-			fmt.Fprintf(os.Stderr, "  건너뜀 (데이터 없음): %s\n", src)
+			fmt.Fprintf(os.Stderr, "  skipped (no data): %s\n", src)
 			continue
 		}
 		run(cfg.cmd[0], "cp", src+"/.", ctr+":"+e.Destination)
@@ -56,7 +56,7 @@ func cmdVolPush(args []string) error {
 		if grp == "" { grp = "root" }
 		run(cfg.cmd[0], "exec", "-u", "root", ctr, "chown", "-R", usr+":"+grp, e.Destination)
 	}
-	redLog("볼륨 적용 완료!")
+	redLog("volume push complete!")
 	return nil
 }
 
@@ -68,7 +68,7 @@ func cmdVolBackup(args []string) error {
 	os.MkdirAll(dir, 0755)
 	m := map[string]volMap{}
 	if !noStop {
-		redLog("정합성 있는 백업을 위해 스택 중지 중...")
+		redLog("stopping stack for a consistent backup...")
 		compose("stop")
 		defer compose("start")
 	}
@@ -84,10 +84,10 @@ func cmdVolBackup(args []string) error {
 	}
 	b, _ := json.MarshalIndent(m, "", "  ")
 	os.WriteFile(filepath.Join(dir, "volume-map.json"), b, 0644)
-	redLog("압축 중...")
+	redLog("compressing...")
 	run("tar", "-czf", dir+".tar.gz", "-C", dir, ".")
 	os.RemoveAll(dir)
-	redLog("볼륨 백업: " + dir + ".tar.gz")
+	redLog("volume backup: " + dir + ".tar.gz")
 	return nil
 }
 
@@ -100,7 +100,7 @@ func cmdVolRestore(args []string) error {
 	}
 	tarFile := filepath.Join(cfg.backupDir, cfg.stackName+".volume."+args[0]+".tar.gz")
 	if _, err := os.Stat(tarFile); os.IsNotExist(err) {
-		return fmt.Errorf("백업을 찾을 수 없습니다: %s", tarFile)
+		return fmt.Errorf("backup not found: %s", tarFile)
 	}
 	rdir, _ := os.MkdirTemp(cfg.backupDir, "volrest.")
 	defer os.RemoveAll(rdir)
@@ -109,11 +109,10 @@ func cmdVolRestore(args []string) error {
 	var vmap map[string]volMap
 	json.Unmarshal(d, &vmap)
 	if !noStop {
-		redLog("복원을 위해 스택 중지 중...")
+		redLog("stopping stack for restore...")
 		compose("stop")
 		defer compose("start")
 	}
-	// chown 후보 높은 빈도
 	for ctr, e := range vmap {
 		src := filepath.Join(rdir, e.Volume)
 		if _, e2 := os.Stat(src); os.IsNotExist(e2) { continue }
@@ -124,6 +123,6 @@ func cmdVolRestore(args []string) error {
 		if grp == "" { grp = "root" }
 		run(cfg.cmd[0], "exec", "-u", "root", ctr, "chown", "-R", usr+":"+grp, e.Destination)
 	}
-	redLog("볼륨 복원 완료!")
+	redLog("volume restore complete!")
 	return nil
 }

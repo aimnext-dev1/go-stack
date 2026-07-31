@@ -26,27 +26,27 @@ func cmdImgBackup(args []string) error {
 			run(cfg.cmd[0], "rmi", cName+":backup")
 		}
 	}
-	redLog("압축 중...")
+	redLog("compressing...")
 	run("tar", "-czf", dir+".tar.gz", "-C", dir, ".")
 	os.RemoveAll(dir)
-	redLog("이미지 백업: " + dir + ".tar.gz")
+	redLog("image backup: " + dir + ".tar.gz")
 	return nil
 }
 
 func cmdImgRestore(args []string) error {
 	if _, err := validateTimestamp(args[0]); err != nil { return err }
 	tarFile := filepath.Join(cfg.backupDir, cfg.stackName+".image."+args[0]+".tar.gz")
-	if _, err := os.Stat(tarFile); os.IsNotExist(err) { return fmt.Errorf("백업을 찾을 수 없습니다: %s", tarFile) }
+	if _, err := os.Stat(tarFile); os.IsNotExist(err) { return fmt.Errorf("backup not found: %s", tarFile) }
 	rd, _ := os.MkdirTemp(cfg.backupDir, "imgrest.")
 	defer os.RemoveAll(rd)
 	run("tar", "-xzf", tarFile, "-C", rd)
 	ents, _ := os.ReadDir(rd)
 	for _, e := range ents {
 		if strings.HasSuffix(e.Name(), ".tar") {
-			redLog("불러오는 중: " + e.Name())
+			redLog("loading: " + e.Name())
 			run(cfg.cmd[0], "load", "-i", filepath.Join(rd, e.Name()))
 		}
 	}
-	redLog("이미지 복원 완료! compose 파일의 image 값을 수정한 뒤 실행하세요.")
+	redLog("image restore complete! Update the image value in your compose file, then run.")
 	return nil
 }

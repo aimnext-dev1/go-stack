@@ -76,7 +76,7 @@ func composeLines(args ...string) []string {
 func checkStackExists() error {
 	out, _ := composeOut("ps", "-aq")
 	if out == "" {
-		return fmt.Errorf("'%s' 스택을 찾을 수 없습니다. 먼저 'go-stack up'을 실행하세요.", cfg.stackName)
+		return fmt.Errorf("stack '%s' not found. Run 'go-stack up' first.", cfg.stackName)
 	}
 	return nil
 }
@@ -84,7 +84,7 @@ func checkStackExists() error {
 func checkStackNotExist() error {
     err := checkStackExists()
     if err == nil {
-        return fmt.Errorf("'%s' 스택이 이미 존재합니다. 먼저 'go-stack down'을 실행하세요.", cfg.stackName)
+        return fmt.Errorf("stack '%s' already exists. Run 'go-stack down' first.", cfg.stackName)
     }
     return nil
 }
@@ -117,18 +117,18 @@ func resolveComposeFiles(env string) ([]string, string) {
     case "local","": cfgFile = os.Getenv("COMPOSE_FILE_LOCAL")
     case "dev":     cfgFile = os.Getenv("COMPOSE_FILE_DEV")
     case "prod":    cfgFile = os.Getenv("COMPOSE_FILE_PROD")
-    default:        fatal("지원하지 않는 환경입니다: %s (local, dev, prod)", env)
+    default:        fatal("unsupported environment: %s (local, dev, prod)", env)
     }
     envUpper := strings.ToUpper(env)
-    if cfgFile == "" { fatal("COMPOSE_FILE_%s가 stack.env에 설정되지 않았습니다", envUpper) }
+    if cfgFile == "" { fatal("COMPOSE_FILE_%s is not set in stack.env", envUpper) }
     var files []string
     if base := os.Getenv("COMPOSE_BASE_FILE"); base != "" {
         bf := filepath.Join(cfg.root, base)
-        if _, e := os.Stat(bf); os.IsNotExist(e) { fatal("베이스 compose 파일을 찾을 수 없습니다: %s", bf) }
+        if _, e := os.Stat(bf); os.IsNotExist(e) { fatal("base compose file not found: %s", bf) }
         files = append(files, "-f", bf)
     }
     cf := filepath.Join(cfg.root, cfgFile)
-    if _, e := os.Stat(cf); os.IsNotExist(e) { fatal("compose 파일을 찾을 수 없습니다: %s", cf) }
+    if _, e := os.Stat(cf); os.IsNotExist(e) { fatal("compose file not found: %s", cf) }
     files = append(files, "-f", cf)
     var envFile string
     switch env {
@@ -143,18 +143,18 @@ func resolveOneContainer(args []string) string {
     if len(args) > 0 { return args[0] }
     list := containerNames()
     if len(list) == 1 {
-        redLog("자동 선택: " + list[0])
+        redLog("auto-selected: " + list[0])
         return list[0]
     }
-    fmt.Println("컨테이너 목록:")
+    fmt.Println("containers:")
     for _, n := range list { fmt.Printf("  %s\n", n) }
     return ""
 }
 
 func validateTimestamp(ts string) (string, error) {
-    if len(ts) != 13 || ts[8] != '_' { return "", fmt.Errorf("형식: YYYYMMDD_HHMM 예) 20240131_1341") }
+    if len(ts) != 13 || ts[8] != '_' { return "", fmt.Errorf("format: YYYYMMDD_HHMM e.g. 20240131_1341") }
     t, err := time.Parse("20060102", ts[:8])
-    if err != nil { return "", fmt.Errorf("잘못된 날짜입니다: %s", ts[:8]) }
-    if _, err := time.Parse("1504", ts[9:]); err != nil { return "", fmt.Errorf("잘못된 시간입니다: %s", ts[9:]) }
+    if err != nil { return "", fmt.Errorf("invalid date: %s", ts[:8]) }
+    if _, err := time.Parse("1504", ts[9:]); err != nil { return "", fmt.Errorf("invalid time: %s", ts[9:]) }
     return t.Format("20060102") + "_" + ts[9:], nil
 }

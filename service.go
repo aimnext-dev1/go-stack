@@ -7,11 +7,11 @@ func cmdStatus(args []string) error {
 	return compose("ps", "-a")
 }
 
-var svcActionKo = map[string]string{"start": "시작", "stop": "중지", "restart": "재시작"}
+var svcActionLabel = map[string]string{"start": "starting", "stop": "stopping", "restart": "restarting"}
 
 func svcAction(subcmd string, args []string) error {
 	if err := checkStackExists(); err != nil { return err }
-	redLog("전체 " + svcActionKo[subcmd])
+	redLog(svcActionLabel[subcmd] + " all services")
 	return compose(append([]string{subcmd}, args...)...)
 }
 
@@ -21,15 +21,15 @@ func cmdSvcRestart(args []string) error { return svcAction("restart", args) }
 
 func cmdLog(args []string) error {
 	name := resolveOneContainer(args)
-	if name == "" { return fmt.Errorf("컨테이너 이름을 지정하세요") }
-	redLog("로그 조회: " + name)
+	if name == "" { return fmt.Errorf("specify a container name") }
+	redLog("tailing logs: " + name)
 	return run(cfg.cmd[0], "logs", "-f", "-n", "10000", name)
 }
 
 func cmdConnect(args []string) error {
 	name := resolveOneContainer(args)
-	if name == "" { return fmt.Errorf("컨테이너 이름을 지정하세요") }
-	redLog("접속 중: " + name)
+	if name == "" { return fmt.Errorf("specify a container name") }
+	redLog("connecting: " + name)
 	return run(cfg.cmd[0], "exec", "-it", name, "sh", "-c",
 		`if command -v bash >/dev/null 2>&1; then exec bash; else exec sh; fi`)
 }

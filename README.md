@@ -2,13 +2,13 @@
 
 # Docker Stack Management CLI 🐳
 
-`docker compose` 스택을 손쉽게 **배포/관리/백업/복원**할 수 있는 단일 바이너리 CLI `go-stack`입니다.
-과거에는 프로젝트마다 `_script/`+`Makefile` 전체를 복사해서 썼지만, 이제 `go-stack`를 한 번 전역 설치해두면
-각 프로젝트 폴더에는 `stack.env` + `docker-compose*.yml`만 있으면 됩니다.
+`go-stack` is a single-binary CLI that makes it easy to **deploy, manage, back up, and restore** `docker compose` stacks.
+In the past every project copied a whole `_script/` + `Makefile` set; now install `go-stack` globally once, and each
+project folder only needs `stack.env` + `docker-compose*.yml`.
 
 ---
 
-## 📦 설치
+## 📦 Install
 
 ### yum (RHEL/CentOS/Fedora, x86_64)
 
@@ -17,152 +17,153 @@ sudo curl -o /etc/yum.repos.d/go-stack.repo https://aimnext-dev1.github.io/dtx-d
 sudo yum install go-stack
 ```
 
-### 소스 빌드
+### Build from source
 
 ```bash
-git clone <이 저장소>
+git clone <this repo>
 cd dtx-docker-manager
 go build -o go-stack .
-sudo mv go-stack /usr/local/bin/     # 또는 PATH가 잡힌 아무 위치
+sudo mv go-stack /usr/local/bin/     # or anywhere on PATH
 ```
 
-Go 1.26 이상이 필요합니다(빌드 시에만; 설치 후에는 바이너리만 있으면 됩니다).
+Requires Go 1.26+ (only for building; once installed, only the binary is needed).
 
 ---
 
-## 📁 프로젝트 구조 (go-stack가 관리하는 각 서비스 폴더)
+## 📁 Project layout (per service folder managed by go-stack)
 
 ```text
 my-service/
-├── stack.env                  # 이 스택의 설정값 (직접 작성, git에는 커밋하지 않음)
-├── docker-compose.yml         # 베이스: 서비스 공통 정의 (선택)
-├── docker-compose.local.yml   # local 전용
+├── stack.env                  # this stack's config (hand-written, not committed to git)
+├── docker-compose.yml         # base: shared service definitions (optional)
+├── docker-compose.local.yml   # local only
 ├── docker-compose.dev.yml
 └── docker-compose.prod.yml
 ```
 
-`go-stack`는 현재 디렉토리에서 상위로 올라가며 `stack.env`를 찾습니다(git이 `.git`을 찾는 방식과 동일) —
-서비스 폴더 안 어디서든 `go-stack` 명령을 실행할 수 있습니다.
+`go-stack` walks up from the current directory looking for `stack.env` (the same way git looks for `.git`) —
+you can run `go-stack` from anywhere inside a service folder.
 
-`_backup/`(백업 결과물), `_volume/`(pull/push 작업 폴더)는 필요할 때 `go-stack`가 자동 생성합니다.
+`_backup/` (backup output) and `_volume/` (pull/push working dir) are created automatically by `go-stack` as needed.
 
 ---
 
-## 🙌 사용에 앞서
+## 🙌 Before you start
 
-### 사용 요건
-* Docker CLI / `docker compose`(v2), 또는 Podman / `docker-compose`(v1)가 PATH에 있어야 함
+### Requirements
+* Docker CLI / `docker compose` (v2), or Podman / `docker-compose` (v1) must be on PATH
 
-(과거 bash 버전과 달리 `jq` 의존성은 없습니다 — Go 바이너리 내부에서 JSON을 직접 처리합니다.)
+(Unlike the old bash version, there's no `jq` dependency — the Go binary handles JSON directly.)
 
-### 초기 설정 (stack.env)
+### Initial setup (stack.env)
 
 ```bash
 mkdir my-service && cd my-service
-go-stack init                               # stack.env 생성 + .gitignore에 등록
-vi stack.env                          # 값 입력 (아래 표 참고)
-vi docker-compose.yml                 # 서비스 정의 작성 (stack.env와 같은 폴더)
+go-stack init                          # creates stack.env + registers it in .gitignore
+vi stack.env                           # fill in values (see table below)
+vi docker-compose.yml                  # write service definitions (same folder as stack.env)
 ```
 
-> `go-stack init`은 `stack.env`만 생성합니다. compose 파일은 직접 작성하세요.
-> 이미 `stack.env`가 있는 폴더에서 실행하면 에러 메시지를 띄우고 아무것도 바꾸지 않습니다.
+> `go-stack init` only creates `stack.env`. Write the compose file yourself.
+> If `stack.env` already exists in the folder, it prints an error and changes nothing.
 
-`stack.env`에 채워야 할 값:
+Values to fill in `stack.env`:
 ```text
-STACK_NAME           # docker compose 프로젝트명(-p) / 백업 파일명 접두사
+STACK_NAME            # docker compose project name (-p) / backup filename prefix
 
-COMPOSE_FILE_LOCAL    # 로컬환경 도커 컴포즈 명세파일명 (stack.env와 같은 폴더 기준)
-COMPOSE_FILE_DEV      # 개발환경 도커 컴포즈 명세파일명
-COMPOSE_FILE_PROD     # 운영환경 도커 컴포즈 명세파일명
+COMPOSE_FILE_LOCAL     # local environment compose spec filename (relative to stack.env's folder)
+COMPOSE_FILE_DEV       # dev environment compose spec filename
+COMPOSE_FILE_PROD      # prod environment compose spec filename
 
-COMPOSE_BASE_FILE     # (선택) 공통 베이스 compose 파일명 — 아래 "환경별 오버라이드" 참고
+COMPOSE_BASE_FILE      # (optional) shared base compose filename — see "Per-environment overrides" below
 
-ENV_FILE_LOCAL        # (선택) 로컬환경 환경변수 파일 경로
-ENV_FILE_DEV          # (선택) 개발환경 환경변수 파일 경로
-ENV_FILE_PROD         # (선택) 운영환경 환경변수 파일 경로
+ENV_FILE_LOCAL         # (optional) local environment env file path
+ENV_FILE_DEV           # (optional) dev environment env file path
+ENV_FILE_PROD          # (optional) prod environment env file path
 
-GO_STACK_CONTAINER         # (선택) docker | podman — 자동 감지 우선순위를 강제로 지정
+GO_STACK_CONTAINER     # (optional) docker | podman — force the runtime instead of auto-detecting
 ```
 
-> `stack.env`는 `.gitignore`에 포함하는 것을 권장합니다(프로젝트별 값이므로 커밋 불필요).
+> It's recommended to add `stack.env` to `.gitignore` (per-project values, no need to commit).
 
-### 환경별 오버라이드
+### Per-environment overrides
 
-환경마다 완전히 다른 compose 파일을 따로 관리하면 서비스 정의가 중복됩니다.
-공통 서비스 정의는 베이스 파일에 두고, 환경별 파일에는 차이나는 값만 작성하는
-compose 표준 오버레이 방식을 권장합니다. `stack.env`에서 `COMPOSE_BASE_FILE=docker-compose.yml`을
-설정하면 `-f docker-compose.yml -f docker-compose.<환경>.yml`로 자동 조합되어 실행됩니다.
-설정하지 않으면 환경별 파일 하나를 완전한 단독 스펙으로 사용합니다.
+Maintaining completely separate compose files per environment duplicates service definitions.
+The recommended approach is the standard compose overlay pattern: put shared service definitions
+in a base file, and only the differing values in each environment file. Setting
+`COMPOSE_BASE_FILE=docker-compose.yml` in `stack.env` runs the combination
+`-f docker-compose.yml -f docker-compose.<env>.yml` automatically.
+If unset, the single per-environment file is used as a complete standalone spec.
 
 ---
 
-## 🛠️ 기본 사용법
+## 🛠️ Basic usage
 
-### 🔹 스택 실행 / 제거
+### 🔹 Start / remove the stack
 
 ```bash
-go-stack up [환경]       # ex) go-stack up local (환경 미지정시 local)
+go-stack up [env]       # e.g. go-stack up local (defaults to local if unspecified)
 go-stack down
-go-stack update [환경]   # 변경분 빌드 후 재생성 (compose up -d --build)
+go-stack update [env]   # rebuild changes and recreate the stack (compose up -d --build)
 ```
 
-### 🔹 서비스 제어
+### 🔹 Service control
 ```bash
-go-stack start [서비스명...]       # 비워놓을 경우 전체 시작
-go-stack stop [서비스명...]        # 비워놓을 경우 전체 중지
-go-stack restart [서비스명...]     # 비워놓을 경우 전체 재시작
+go-stack start [svc...]        # starts all services if left empty
+go-stack stop [svc...]         # stops all services if left empty
+go-stack restart [svc...]      # restarts all services if left empty
 go-stack status
-go-stack log [컨테이너명]           # 미지정시 컨테이너 1개면 자동 선택, 여러 개면 목록 출력
-go-stack connect [컨테이너명]        # 컨테이너 안으로 접속 (bash 있으면 bash, 없으면 sh)
+go-stack log [container]       # auto-selects if exactly one container, else lists them
+go-stack connect [container]   # exec into the container (bash if available, else sh)
 ```
 
-### 🔹 백업 / 복원
+### 🔹 Backup / restore
 ```bash
 go-stack backup [no-stop]
-go-stack restore <백업시간> [no-stop]   # 예: go-stack restore 20250331_1325
+go-stack restore <timestamp> [no-stop]   # e.g. go-stack restore 20250331_1325
 
 go-stack isave [source]
-go-stack iload <백업시간>                # 예: go-stack iload 20250331_1325
+go-stack iload <timestamp>               # e.g. go-stack iload 20250331_1325
 ```
 
-> `backup`/`restore`는 데이터 정합성을 위해 진행 전 스택을 중지하고, 완료 후 다시 시작합니다.
-> 중지 없이 진행하려면 `no-stop` 인자를 붙이세요(예: `go-stack backup no-stop`).
+> `backup`/`restore` stop the stack before running and start it again afterward, for data consistency.
+> To skip stopping, pass the `no-stop` argument (e.g. `go-stack backup no-stop`).
 >
-> `isave`(이미지 백업)는 기본적으로 컨테이너의 현재 상태(런타임 변경분 포함)를 커밋해 백업합니다.
-> 원본 이미지 그대로(더 빠르고 용량이 작음) 백업하려면 `go-stack isave source`를 사용하세요.
-> `iload`(이미지 복원)는 이미지를 로컬로 불러오기만 합니다 — 이후 compose 파일의 `image:` 값을
-> 복원한 이미지명으로 수동으로 바꾸고 `go-stack up`을 실행해야 합니다.
+> `isave` (image backup) by default commits the container's current state (including runtime changes) before backing up.
+> To back up the original image as-is (faster, smaller), use `go-stack isave source`.
+> `iload` (image restore) only loads images locally — afterward you must manually update the compose file's
+> `image:` value to the restored image name and run `go-stack up`.
 
-### 🔹 볼륨 변경사항 적용
+### 🔹 Apply volume changes
 ```bash
 go-stack pull
-# ./_volume 에 받은 데이터를 수정한 뒤
+# edit the data under ./_volume, then
 go-stack push
 ```
 
-### 🔹 기타
+### 🔹 Misc
 ```bash
-go-stack clear          # 미사용 이미지 정리 (docker image prune -af)
-go-stack help           # 명령어 도움말 출력
+go-stack clear          # prune unused images (docker image prune -af)
+go-stack help           # print command help
 ```
 
-## 🧩 백업 파일명 규칙
+## 🧩 Backup filename convention
 
-백업은 `_backup/` 폴더에 자동 저장되며, 다음 규칙으로 이름이 생성됩니다:
+Backups are saved automatically under `_backup/`, named as follows:
 
-### 이미지 백업
-> `<스택이름>.image.<백업날짜_시간>.tar.gz`
-> 예: `iot-db.image.20250331_1325.tar.gz`
+### Image backup
+> `<stack name>.image.<backup timestamp>.tar.gz`
+> e.g. `iot-db.image.20250331_1325.tar.gz`
 
-### 볼륨 백업
-> `<스택이름>.volume.<백업날짜_시간>.tar.gz`
-> 예: `iot-db.volume.20250331_1325.tar.gz`
+### Volume backup
+> `<stack name>.volume.<backup timestamp>.tar.gz`
+> e.g. `iot-db.volume.20250331_1325.tar.gz`
 
-## 🧪 예시
+## 🧪 Example
 ```bash
 mkdir my-service && cd my-service
 go-stack init
-# stack.env 값 입력, docker-compose.yml 작성 후
+# fill in stack.env, write docker-compose.yml, then
 go-stack up local
 go-stack status
 go-stack backup
